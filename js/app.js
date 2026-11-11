@@ -1,6 +1,7 @@
-// ときたね アプリ本体（M5.5：ようこそ画面と操作アニメーション）
-// M5.5の範囲：初回だけ出るようこそ画面と、画面遷移・押下の軽いアニメーション。
-// 預ける・保存は M2、再会は M3、設定の保存は M4、バックアップ・削除は M5、PWA仕上げは M6。
+// ときたね アプリ本体（M6：PWA仕上げ）
+// M6の範囲：Service Worker登録、初回預け完了時のホーム画面追加の案内。
+// 預ける・保存は M2、再会は M3、設定の保存は M4、バックアップ・削除は M5、
+// ようこそ画面と操作アニメーションは M5.5。
 import { poolForTendency, initialTendency } from "./questions.js";
 import {
   addEntry,
@@ -390,13 +391,39 @@ depositBtn.addEventListener("click", async () => {
   };
   await addEntry(entry);
   const started = await getSetting("started", false);
-  if (!started) {
+  const isFirst = !started;
+  if (isFirst) {
     await setSetting("started", true);
     requestPersist();
   }
   writeBody.value = "";
   resetPeriodSelection();
   show("view-done");
+  if (isFirst) maybeShowHomeGuide();
+});
+
+// ---------- ホーム画面追加の案内（初回の預け完了時に一度だけ） ----------
+const homeGuide = document.getElementById("home-guide");
+async function maybeShowHomeGuide() {
+  try {
+    const standalone =
+      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+      window.navigator.standalone === true;
+    if (standalone) {
+      // すでに追加済みなら案内は出さない
+      await setSetting("homeGuideShown", true);
+      return;
+    }
+    const shown = await getSetting("homeGuideShown", false);
+    if (shown) return;
+    await setSetting("homeGuideShown", true);
+    homeGuide.hidden = false;
+  } catch (_) {
+    /* 案内が出なくても預ける操作には影響しない */
+  }
+}
+document.getElementById("home-guide-close").addEventListener("click", () => {
+  homeGuide.hidden = true;
 });
 
 // ---------- 預かり中（実データ。本文は読まない） ----------
@@ -613,3 +640,8 @@ document.getElementById("btn-start").addEventListener("click", async () => {
   if (!welcomed) show("view-welcome");
   else goEntry();
 })();
+
+// ---------- Service Worker（M6：更新の混ざりを防ぐ） ----------
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
