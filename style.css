@@ -26,6 +26,7 @@
 
   /* 動き（0.3〜0.6秒に統一、イージングは1種類） */
   --ease: ease-out;
+  --ease-soft: cubic-bezier(0.22, 0.61, 0.21, 1);
   --dur: 0.45s;
 }
 
@@ -191,7 +192,7 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
   font-family: var(--font-maru); font-weight: 700; font-size: 28px;
   line-height: 1.55; margin-top: 10px; min-height: 118px;
 }
-.q-text.fade { animation: qFade 0.18s var(--ease) both; }
+.q-text.fade { animation: qFade 0.55s var(--ease-soft) both; }
 @keyframes qFade { from { opacity: 0; } to { opacity: 1; } }
 .shuffle {
   width: 52px; height: 52px; border-radius: 50%;
@@ -273,7 +274,7 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 31;
   background: var(--surface); border-radius: 28px 28px 0 0;
   padding: 22px 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
-  transform: translateY(105%); transition: transform 0.35s var(--ease);
+  transform: translateY(105%); transition: transform 0.5s var(--ease-soft);
   display: flex; flex-direction: column; gap: 10px;
 }
 .sheet.show { transform: translateY(0); }
@@ -419,14 +420,24 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
 .welcome-facts li { font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; }
 
 /* ---------- 画面遷移と操作の手触り（M5.5） ---------- */
-.view.active { animation: viewIn 0.32s var(--ease) both; }
+.view.active { animation: viewIn 0.5s ease both; }
 @keyframes viewIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+/* 中身の要素が少しずつ時間差で浮かび上がる（最大0.2秒差まで） */
+.view.active > * { animation: childIn 0.55s var(--ease-soft) both; }
+.view.active > *:nth-child(2) { animation-delay: 0.05s; }
+.view.active > *:nth-child(3) { animation-delay: 0.1s; }
+.view.active > *:nth-child(4) { animation-delay: 0.15s; }
+.view.active > *:nth-child(5) { animation-delay: 0.2s; }
+@keyframes childIn {
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-button { transition: transform 0.12s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, opacity 0.15s ease; }
+button { transition: transform 0.18s var(--ease-soft), background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, color 0.3s ease, opacity 0.25s ease; }
 .btn-primary:active, .btn-secondary:active, .tend:active, .period:active,
-.holding-item:active, .reunited-item:active, .longpress:active { transform: scale(0.98); }
+.holding-item:active, .reunited-item:active, .longpress:active { transform: scale(0.97); }
 .btn-text:active, .back-btn:active, .nav-link:active { opacity: 0.55; }
 
 /* ---------- 広い画面（PC）向けレイアウト ---------- */
@@ -462,5 +473,6 @@ button { transition: transform 0.12s ease, background-color 0.2s ease, border-co
   .period .p-bud-pale, .period .p-bud-rose, .period .p-ring,
   .sheet, .toast { transition: none !important; }
   .view.active { animation: viewFade 0.2s ease both; }
+  .view.active > * { animation: none !important; }
 }
 @keyframes viewFade { from { opacity: 0; } to { opacity: 1; } }
