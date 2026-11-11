@@ -1,6 +1,6 @@
-// ときたね アプリ本体（M5：バックアップ・削除）
-// M5の範囲：書き出し・読み込み（平文JSON）と、すべての言葉を消す（2段階＋長押し）。
-// 預ける・保存は M2、再会は M3、設定の保存は M4、PWA仕上げは M6。
+// ときたね アプリ本体（M5.5：ようこそ画面と操作アニメーション）
+// M5.5の範囲：初回だけ出るようこそ画面と、画面遷移・押下の軽いアニメーション。
+// 預ける・保存は M2、再会は M3、設定の保存は M4、バックアップ・削除は M5、PWA仕上げは M6。
 import { poolForTendency, initialTendency } from "./questions.js";
 import {
   addEntry,
@@ -580,9 +580,20 @@ lpBtn.addEventListener("pointerdown", lpStart);
 lpBtn.addEventListener("pointerup", lpCancel);
 lpBtn.addEventListener("pointerleave", lpCancel);
 
+// ---------- ようこそ画面（初回だけ） ----------
+document.getElementById("btn-start").addEventListener("click", async () => {
+  try {
+    await setSetting("welcomed", true);
+  } catch (_) {
+    /* 保存できない環境では、その場の表示だけ切り替える */
+  }
+  goEntry();
+});
+
 // ---------- 初期表示 ----------
 (async () => {
   let initial = "daily";
+  let welcomed = true;
   try {
     // 保存が消えた形跡（開始フラグがあるのに言葉が0件）を見たら、静かに初回状態へ戻す
     const started = await getSetting("started", false);
@@ -593,10 +604,12 @@ lpBtn.addEventListener("pointerleave", lpCancel);
     const carryover = await getSetting("carryoverTendency", "off");
     const last = await getSetting("lastTendency", null);
     initial = initialTendency(carryover, last);
+    welcomed = await getSetting("welcomed", false);
   } catch (_) {
     /* 保存が使えない環境では通常の入口・通常の傾向で続行する */
   }
   selectTendency(initial, { record: false });
   drawQuestion();
-  goEntry();
+  if (!welcomed) show("view-welcome");
+  else goEntry();
 })();
