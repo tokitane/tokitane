@@ -1,7 +1,6 @@
-// ときたね アプリ本体（M2：預ける・保存）
-// M2の範囲：問い→書く→時期→保存（IndexedDB）を通し、閉じて開き直しても残ること。
-// 預かり中の一覧・時期変更・1件削除も実データで動く。
-// 再会の判定と入口の出し分けは M3、設定の保存は M4、書き出し等は M5。
+// ときたね アプリ本体（M3：再会）
+// M3の範囲：期日が来た言葉が入口に封で現れ、開いて読める。再会した言葉の読み返し。
+// 預ける・保存は M2、設定の保存は M4、書き出し・全削除は M5、PWA仕上げは M6。
 import { poolForTendency } from "./questions.js";
 import {
   addEntry,
@@ -9,12 +8,14 @@ import {
   updateEntry,
   deleteEntry,
   getHoldingMeta,
+  getDueEntries,
+  getReunitedEntries,
   countEntries,
   getSetting,
   setSetting,
   requestPersist,
 } from "./store.js";
-import { todayStr, dueDateFor } from "./dates.js";
+import { todayStr, addDays, dueDateFor, formatJP } from "./dates.js";
 
 const TENDENCY_NAMES = {
   light: "さらっと書く",
@@ -35,6 +36,10 @@ const state = {
   periodMode: "deposit", // "deposit" | "change"
   changeEntryId: null,
   sheetEntryId: null,
+  dueEntry: null, // 封に出ている言葉
+  reunionEntry: null, // 開いて読んでいる言葉
+  writeMode: "deposit", // "deposit" | "reply"
+  replyEntryId: null,
 };
 
 // ---------- 画面遷移 ----------
@@ -49,9 +54,29 @@ function show(id) {
   });
   window.scrollTo(0, 0);
   if (id === "view-holding") renderHolding();
+  if (id === "view-reunited") renderReunited();
+}
+
+// 入口へ戻るたびに、期日の来た言葉があるかを確認して入口の形を選ぶ
+async function goEntry() {
+  try {
+    const due = await getDueEntries(todayStr());
+    if (due.length > 0) {
+      fillSeal(due[0]);
+      show("view-entry-reunion");
+      return;
+    }
+  } catch (_) {
+    /* 保存が読めない場合は通常の入口を出す */
+  }
+  state.dueEntry = null;
+  show("view-entry");
 }
 document.querySelectorAll("[data-go]").forEach((el) => {
-  el.addEventListener("click", () => show(el.dataset.go));
+  el.addEventListener("click", () => {
+    if (el.dataset.go === "view-entry") goEntry();
+    else show(el.dataset.go);
+  });
 });
 
 // ---------- トースト ----------
@@ -88,6 +113,7 @@ const qText = document.getElementById("q-text");
 const qNote = document.getElementById("q-tendency-note");
 const writeQ = document.getElementById("write-q");
 const writeBody = document.getElementById("write-body");
+const toPeriodBtn = document.getElementById("btn-to-period");
 
 function drawQuestion() {
   const pool = poolForTendency(state.tendency);
@@ -106,21 +132,43 @@ function drawQuestion() {
   qText.classList.add("fade");
   qNote.textContent = "「" + TENDENCY_NAMES[state.tendency] + "」で書いています";
 }
+function enterWriteMode(mode) {
+  state.writeMode = mode;
+  toPeriodBtn.textContent = mode === "reply" ? "返す" : "次へ";
+}
 document.getElementById("btn-shuffle").addEventListener("click", drawQuestion);
 document.getElementById("btn-to-write").addEventListener("click", () => {
+  enterWriteMode("deposit");
   writeQ.textContent = state.question ? state.question.text : "";
   writeQ.style.display = state.question ? "" : "none";
   show("view-write");
 });
 document.getElementById("btn-no-question").addEventListener("click", () => {
+  enterWriteMode("deposit");
   state.question = null;
   writeQ.style.display = "none";
   show("view-write");
 });
-document.getElementById("btn-to-period").addEventListener("click", () => {
+toPeriodBtn.addEventListener("click", async () => {
   if (writeBody.value.trim() === "") {
     showToast("まだ言葉が書かれていません");
     writeBody.focus();
+    return;
+  }
+  if (state.writeMode === "reply" && state.replyEntryId) {
+    const entry = await getEntry(state.replyEntryId);
+    if (entry) {
+      entry.reply = { body: writeBody.value, date: todayStr() };
+      await updateEntry(entry);
+      if (state.reunionEntry && state.reunionEntry.id === entry.id) {
+        state.reunionEntry = entry;
+      }
+    }
+    writeBody.value = "";
+    state.replyEntryId = null;
+    enterWriteMode("deposit");
+    goEntry();
+    showToast("一言を返しました");
     return;
   }
   state.periodMode = "deposit";
@@ -129,35 +177,151 @@ document.getElementById("btn-to-period").addEventListener("click", () => {
   show("view-period");
 });
 
-// ---------- 再会（M3で実データ化。ここは骨格の遷移のみ） ----------
+// ---------- 再会：封・開封・読後 ----------
 const sealSvg = document.getElementById("seal-svg");
-document.getElementById("btn-open-seal").addEventListener("click", () => {
+const sealContext = document.getElementById("seal-context");
+const reunionDate = document.getElementById("reunion-date");
+const reunionQuestion = document.getElementById("reunion-question");
+const reunionBody = document.getElementById("reunion-body");
+const afterBtns = document.getElementById("after-btns");
+const replyCard = document.getElementById("reunion-reply");
+const replyBodyEl = document.getElementById("reunion-reply-body");
+const replyDateEl = document.getElementById("reunion-reply-date");
+let reunionBackMode = "entry"; // "entry" | "list"
+
+function fillSeal(entry) {
+  state.dueEntry = entry;
+  // 深い傾向で書いた言葉だけ、日付と傾向の事実を小さく添える
+  if (entry.tendency === "deep") {
+    sealContext.textContent = formatJP(entry.createdDate) + "／ゆっくり向き合って書いた言葉";
+    sealContext.style.display = "";
+  } else {
+    sealContext.textContent = "";
+    sealContext.style.display = "none";
+  }
+}
+
+function fillReunion(entry, mode) {
+  state.reunionEntry = entry;
+  reunionBackMode = mode === "reread" ? "list" : "entry";
+  reunionDate.textContent = formatJP(entry.createdDate) + "に書いた言葉";
+  reunionQuestion.textContent = entry.questionText || "";
+  reunionQuestion.style.display = entry.questionText ? "" : "none";
+  reunionBody.textContent = entry.body;
+  afterBtns.style.display = mode === "reread" ? "none" : "";
+  if (entry.reply) {
+    replyCard.hidden = false;
+    replyBodyEl.textContent = entry.reply.body;
+    replyDateEl.textContent = formatJP(entry.reply.date);
+  } else {
+    replyCard.hidden = true;
+  }
+}
+
+document.getElementById("btn-open-seal").addEventListener("click", async () => {
+  const entry = state.dueEntry;
+  if (!entry) return;
   sealSvg.classList.add("opening");
-  setTimeout(() => {
+  setTimeout(async () => {
     sealSvg.classList.remove("opening");
+    const fresh = await getEntry(entry.id);
+    if (fresh && fresh.status === "holding") {
+      fresh.status = "reunited";
+      await updateEntry(fresh);
+      fillReunion(fresh, "fresh");
+    } else if (fresh) {
+      fillReunion(fresh, "fresh");
+    }
     show("view-reunion");
-    document.getElementById("reunion-body").focus({ preventScroll: true });
+    reunionBody.focus({ preventScroll: true });
   }, 560);
 });
-document.getElementById("btn-defer-today").addEventListener("click", () => show("view-entry"));
-document.getElementById("btn-defer-later").addEventListener("click", () => {
-  show("view-entry");
+
+document.getElementById("btn-defer-today").addEventListener("click", async () => {
+  const entry = state.dueEntry;
+  if (entry) {
+    const fresh = await getEntry(entry.id);
+    if (fresh && fresh.status === "holding") {
+      fresh.deferUntil = addDays(todayStr(), 1); // 明日まで出さない。回数は記録しない
+      await updateEntry(fresh);
+    }
+  }
+  state.dueEntry = null;
+  goEntry();
+});
+
+document.getElementById("btn-defer-later").addEventListener("click", async () => {
+  const entry = state.dueEntry;
+  if (entry) {
+    const fresh = await getEntry(entry.id);
+    if (fresh && fresh.status === "holding") {
+      // 時期の種別はそのままに、今日から再計算する（第4回会議の決定）
+      fresh.dueDate = dueDateFor(fresh.periodType, todayStr());
+      fresh.deferUntil = null;
+      await updateEntry(fresh);
+    }
+  }
+  state.dueEntry = null;
+  goEntry();
   showToast("先へ回しました");
 });
+
+document.getElementById("btn-reunion-back").addEventListener("click", () => {
+  if (reunionBackMode === "list") show("view-reunited");
+  else goEntry();
+});
+
 document.querySelectorAll("[data-after]").forEach((b) => {
   b.addEventListener("click", () => {
+    const entry = state.reunionEntry;
     if (b.dataset.after === "deposit") {
-      selectTendency(state.tendency);
       drawQuestion();
       show("view-question");
     } else if (b.dataset.after === "reply") {
+      if (!entry) return;
+      enterWriteMode("reply");
+      state.replyEntryId = entry.id;
+      state.question = null;
       writeQ.style.display = "none";
       show("view-write");
     } else {
-      show("view-entry");
+      goEntry();
     }
   });
 });
+
+// ---------- 再会した言葉（読み返し） ----------
+const reunitedList = document.getElementById("reunited-list");
+const reunitedEmpty = document.getElementById("reunited-empty");
+async function renderReunited() {
+  const entries = await getReunitedEntries();
+  reunitedList.replaceChildren();
+  reunitedEmpty.hidden = entries.length > 0;
+  entries.forEach((e) => {
+    const btn = document.createElement("button");
+    btn.className = "reunited-item";
+    const d = document.createElement("span");
+    d.className = "idate";
+    d.textContent = formatJP(e.createdDate);
+    btn.appendChild(d);
+    if (e.questionText) {
+      const q = document.createElement("span");
+      q.className = "iq";
+      q.style.display = "block";
+      q.textContent = e.questionText;
+      btn.appendChild(q);
+    }
+    const body = document.createElement("span");
+    body.className = "ibody";
+    body.textContent = e.body;
+    btn.appendChild(body);
+    btn.addEventListener("click", () => {
+      fillReunion(e, "reread");
+      show("view-reunion");
+    });
+    reunitedList.appendChild(btn);
+  });
+}
 
 // ---------- 時期選択と保存 ----------
 const periodButtons = document.querySelectorAll(".period");
@@ -359,4 +523,4 @@ lpBtn.addEventListener("pointerleave", lpCancel);
 })();
 selectTendency("daily");
 drawQuestion();
-show("view-entry");
+goEntry();
