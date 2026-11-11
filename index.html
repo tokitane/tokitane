@@ -76,7 +76,7 @@
     </div>
     <h2 class="reunion-h">預けた言葉があります</h2>
     <p class="reunion-sub">封を開くと読めます</p>
-    <p class="seal-context">2026年9月12日／ゆっくり向き合って書いた言葉</p>
+    <p class="seal-context" id="seal-context"></p>
     <div class="seal-open-btn">
       <button class="btn-primary" id="btn-open-seal">開く</button>
     </div>
@@ -89,15 +89,20 @@
 
 <!-- ============ 画面3：再会（開封後）＋読後の選択 ============ -->
 <section class="view" id="view-reunion" aria-label="再会した言葉">
-  <div class="back-row"><button class="back-btn" data-go="view-entry">‹ 入口へ</button></div>
+  <div class="back-row"><button class="back-btn" id="btn-reunion-back">‹ 入口へ</button></div>
   <div class="reunion-head">
-    <p class="rdate">2026年9月12日に書いた言葉</p>
-    <p class="rq">今日、時間をかけたことは？</p>
+    <p class="rdate" id="reunion-date"></p>
+    <p class="rq" id="reunion-question"></p>
   </div>
   <div class="letter-card">
-    <p class="reunion-body" tabindex="-1" id="reunion-body">夕方、ベランダの鉢植えに水をやった。土の色が少しずつ戻っていくのを、ぼーっと見ていた。何かを作ったわけでもないけど、あの時間は悪くなかったと思う。</p>
+    <p class="reunion-body" tabindex="-1" id="reunion-body"></p>
   </div>
-  <div class="after-btns">
+  <div class="reply-card" id="reunion-reply" hidden>
+    <p class="reply-label">今の自分から</p>
+    <p class="reply-body" id="reunion-reply-body"></p>
+    <p class="reply-date" id="reunion-reply-date"></p>
+  </div>
+  <div class="after-btns" id="after-btns">
     <button class="btn-primary" data-after="deposit">また未来へ預ける</button>
     <button class="btn-secondary" data-after="reply">今の自分から一言返す</button>
     <button class="btn-text" data-after="close">このまま閉じる</button>
@@ -225,18 +230,8 @@
 <section class="view" id="view-reunited" aria-label="再会した言葉">
   <div class="back-row"><button class="back-btn" data-go="view-entry">‹ 入口へ</button></div>
   <h2 class="screen-title">再会した言葉</h2>
-  <div class="reunited-list">
-    <button class="reunited-item" data-go="view-reunion">
-      <span class="idate">2026年9月12日</span>
-      <span class="iq" style="display:block">今日、時間をかけたことは？</span>
-      <span class="ibody" style="display:block">夕方、ベランダの鉢植えに水をやった。土の色が少しずつ戻っていくのを、ぼーっと見ていた。</span>
-    </button>
-    <button class="reunited-item" data-go="view-reunion">
-      <span class="idate">2026年10月3日</span>
-      <span class="iq" style="display:block">今日すれ違った景色で、少しだけ覚えているものは？</span>
-      <span class="ibody" style="display:block">帰り道、自転車を押しながら渡った橋の上。川面が夕日の色に染まっていて、思わず立ち止まった。</span>
-    </button>
-  </div>
+  <div class="reunited-list" id="reunited-list"></div>
+  <p class="empty-note" id="reunited-empty" hidden>まだ再会した言葉はありません</p>
 </section>
 
 <!-- ============ 画面10：設定 ============ -->
@@ -282,15 +277,6 @@
     </div>
   </div>
 
-  <div class="settings-group">
-    <h3>開発中の確認（M1のみ）</h3>
-    <div class="settings-card dev-links">
-      <button data-go="view-entry-reunion">再会がある日の入口を見る</button>
-      <button data-go="view-reunion">再会（開封後）の画面を見る</button>
-      <button data-go="view-done">預け完了の画面を見る</button>
-    </div>
-    <p class="settings-note">骨格確認用のリンクです。実データで動くようになる段階で外します。</p>
-  </div>
 </section>
 
 <!-- ============ 全削除 1段階目 ============ -->
