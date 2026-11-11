@@ -429,6 +429,30 @@ button { transition: transform 0.12s ease, background-color 0.2s ease, border-co
 .holding-item:active, .reunited-item:active, .longpress:active { transform: scale(0.98); }
 .btn-text:active, .back-btn:active, .nav-link:active { opacity: 0.55; }
 
+/* ---------- 広い画面（PC）向けレイアウト ---------- */
+/* スマホ幅に寄せず、広い画面では読みやすい幅まで広げて使う。スマホ表示には影響しない。 */
+@media (min-width: 900px) {
+  .view { padding: 44px 56px 36px; }
+  .view > * { width: 100%; max-width: 720px; margin-inline: auto; }
+  .entry-q { font-size: 38px; }
+  .tend-list {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    max-width: 980px; align-items: stretch;
+  }
+  .tend { flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 22px 16px; }
+  .period-row { gap: 44px; }
+  .sheet { left: 50%; right: auto; width: min(560px, 100%); transform: translate(-50%, 105%); }
+  .sheet.show { transform: translate(-50%, 0); }
+  .welcome-h { font-size: 34px; }
+  .welcome-body, .confirm-body { max-width: 430px; }
+  .done-sub { max-width: 340px; }
+}
+@media (hover: hover) {
+  .btn-primary:hover { filter: brightness(1.06); }
+  .btn-secondary:hover, .tend:hover, .period:hover { border-color: var(--rose); }
+  .holding-item:hover, .reunited-item:hover { transform: translateY(-2px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .play .eb-stem, .play .eb-leaf-l, .play .eb-leaf-r,
   .play .seal-bud, .play .seal-leaf-l, .play .seal-leaf-r,
