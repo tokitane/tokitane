@@ -127,13 +127,13 @@
   <label class="write-label" for="write-body">言葉を書く</label>
   <textarea class="write-area" id="write-body"></textarea>
   <div class="float-bottom">
-    <button class="btn-primary" data-go="view-period">次へ</button>
+    <button class="btn-primary" id="btn-to-period">次へ</button>
   </div>
 </section>
 
 <!-- ============ 画面6：時期選択 ============ -->
 <section class="view" id="view-period" aria-label="時期を選ぶ">
-  <div class="back-row"><button class="back-btn" data-go="view-write">‹ 書くへ</button></div>
+  <div class="back-row"><button class="back-btn" id="btn-period-back">‹ 書くへ</button></div>
   <h2 class="period-h">未来の自分へ預ける</h2>
   <div class="period-row" role="radiogroup" aria-label="時期を選ぶ">
     <button class="period" role="radio" aria-checked="false" data-period="soon">
@@ -200,26 +200,25 @@
   <div class="back-row"><button class="back-btn" data-go="view-entry">‹ 入口へ</button></div>
   <h2 class="screen-title">預かり中</h2>
   <p class="holding-note">預けた言葉は、時期が来るまで開けません</p>
-  <div class="holding-grid" id="holding-grid">
-    <button class="holding-item" data-period-label="近いうち" aria-label="預かり中の言葉（近いうち）">
-      <svg width="72" height="72" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="36" style="fill:var(--pastel);stroke:var(--rose)" stroke-width="2"/></svg>
-    </button>
-    <button class="holding-item" data-period-label="少し先" aria-label="預かり中の言葉（少し先）">
-      <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="36" style="fill:var(--pastel);stroke:var(--rose)" stroke-width="2"/></svg>
-    </button>
-    <button class="holding-item" data-period-label="忘れた頃" aria-label="預かり中の言葉（忘れた頃）">
-      <svg width="68" height="68" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="36" style="fill:var(--pastel);stroke:var(--rose)" stroke-width="2"/></svg>
-    </button>
-  </div>
+  <div class="holding-grid" id="holding-grid"></div>
+  <p class="empty-note" id="holding-empty" hidden>まだ預けた言葉はありません</p>
 </section>
 
 <!-- 預かり中のシート -->
 <div class="sheet-backdrop" id="sheet-backdrop"></div>
 <div class="sheet" id="holding-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
-  <h3 id="sheet-title">近いうちに預けた言葉</h3>
-  <button class="btn-secondary" id="sheet-change">時期を変える</button>
-  <button class="btn-danger-outline" id="sheet-delete">消す</button>
-  <button class="btn-text" id="sheet-close">閉じる</button>
+  <div id="sheet-main">
+    <h3 id="sheet-title">近いうちに預けた言葉</h3>
+    <button class="btn-secondary" id="sheet-change">時期を変える</button>
+    <button class="btn-danger-outline" id="sheet-delete">消す</button>
+    <button class="btn-text" id="sheet-close">閉じる</button>
+  </div>
+  <div id="sheet-confirm" hidden>
+    <h3>この言葉を消しますか？</h3>
+    <p class="settings-note" style="text-align:center;margin-bottom:8px">消した言葉は戻せません。</p>
+    <button class="btn-danger-outline" id="sheet-delete-confirm">消す</button>
+    <button class="btn-text" id="sheet-delete-cancel">やめる</button>
+  </div>
 </div>
 
 <!-- ============ 画面9：再会した言葉 ============ -->
