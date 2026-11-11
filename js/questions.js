@@ -28,3 +28,13 @@ export function poolForTendency(tendency) {
   if (tendency === "light") return QUESTIONS.filter((q) => q.depth === "shallow");
   return QUESTIONS.filter((q) => q.depth !== "deep");
 }
+
+// アプリを開いたときの初期傾向を決める（設定「開いたときの傾向」）
+// - 引き継ぎOFF（いつも「今日を残す」から始める）: 常に "daily"
+// - 引き継ぎON（前回の傾向のまま始める）: 前回の傾向。ただし「ゆっくり向き合う」(deep) は
+//   その日の同意を大切にするため、決して引き継がない（2026-11-11 ゆき決定）
+export function initialTendency(carryover, lastTendency) {
+  if (carryover !== "on") return "daily";
+  if (lastTendency === "light" || lastTendency === "daily") return lastTendency;
+  return "daily";
+}
