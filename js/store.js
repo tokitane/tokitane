@@ -125,6 +125,12 @@ export async function getReunitedEntries() {
     .sort((a, b) => (a.createdDate > b.createdDate ? -1 : 1));
 }
 
+// 全削除：言葉も設定もすべて消す（本当に消す。ゴミ箱や復元はない）
+export async function clearAllData() {
+  await tx("entries", "readwrite", (s) => s.clear());
+  await tx("settings", "readwrite", (s) => s.clear());
+}
+
 // ---------- settings ----------
 export async function getSetting(key, fallback = null) {
   const row = await getOne("settings", key);
