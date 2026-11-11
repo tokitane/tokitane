@@ -1,7 +1,7 @@
-// ときたね アプリ本体（M3：再会）
-// M3の範囲：期日が来た言葉が入口に封で現れ、開いて読める。再会した言葉の読み返し。
-// 預ける・保存は M2、設定の保存は M4、書き出し・全削除は M5、PWA仕上げは M6。
-import { poolForTendency } from "./questions.js";
+// ときたね アプリ本体（M4：設定の保存）
+// M4の範囲：設定「開いたときの傾向」の保存と、起動時の初期傾向への反映。
+// 預ける・保存は M2、再会は M3、書き出し・全削除は M5、PWA仕上げは M6。
+import { poolForTendency, initialTendency } from "./questions.js";
 import {
   addEntry,
   getEntry,
@@ -55,6 +55,7 @@ function show(id) {
   window.scrollTo(0, 0);
   if (id === "view-holding") renderHolding();
   if (id === "view-reunited") renderReunited();
+  if (id === "view-settings") renderSettings();
 }
 
 // 入口へ戻るたびに、期日の来た言葉があるかを確認して入口の形を選ぶ
@@ -91,14 +92,15 @@ function showToast(text) {
 
 // ---------- 傾向の選択（入口） ----------
 const tendButtons = document.querySelectorAll(".tend");
-function selectTendency(key, { navigate = false } = {}) {
+function selectTendency(key, { navigate = false, record = true } = {}) {
   state.tendency = key;
   tendButtons.forEach((b) => {
     const on = b.dataset.tendency === key;
     b.classList.toggle("sel", on);
     b.setAttribute("aria-checked", String(on));
   });
-  setSetting("lastTendency", key).catch(() => {});
+  // 起動時の初期選択では「前回の傾向」を上書きしない（record=false）
+  if (record) setSetting("lastTendency", key).catch(() => {});
   if (navigate) {
     drawQuestion();
     show("view-question");
@@ -475,12 +477,21 @@ document.getElementById("sheet-delete-confirm").addEventListener("click", async 
   }
 });
 
-// ---------- 設定（保存は M4。ここは骨格の操作のみ） ----------
-document.querySelectorAll("[data-carryover]").forEach((row) => {
-  row.addEventListener("click", () => {
-    document.querySelectorAll("[data-carryover]").forEach((r) =>
-      r.setAttribute("aria-checked", String(r === row))
-    );
+// ---------- 設定：開いたときの傾向（M4で保存まで実装） ----------
+const carryoverRows = document.querySelectorAll("[data-carryover]");
+function markCarryover(value) {
+  carryoverRows.forEach((r) =>
+    r.setAttribute("aria-checked", String(r.dataset.carryover === value))
+  );
+}
+async function renderSettings() {
+  const value = await getSetting("carryoverTendency", "off");
+  markCarryover(value === "on" ? "on" : "off");
+}
+carryoverRows.forEach((row) => {
+  row.addEventListener("click", async () => {
+    markCarryover(row.dataset.carryover);
+    await setSetting("carryoverTendency", row.dataset.carryover);
   });
 });
 document.querySelectorAll("[data-m1-note]").forEach((b) => {
@@ -510,17 +521,22 @@ lpBtn.addEventListener("pointerup", lpCancel);
 lpBtn.addEventListener("pointerleave", lpCancel);
 
 // ---------- 初期表示 ----------
-// 保存が消えた形跡（開始フラグがあるのに言葉が0件）を見たら、静かに初回状態へ戻す
 (async () => {
+  let initial = "daily";
   try {
+    // 保存が消えた形跡（開始フラグがあるのに言葉が0件）を見たら、静かに初回状態へ戻す
     const started = await getSetting("started", false);
     if (started && (await countEntries()) === 0) {
       await setSetting("started", false);
     }
+    // 設定「開いたときの傾向」に従って初期傾向を決める（深い傾向は引き継がない）
+    const carryover = await getSetting("carryoverTendency", "off");
+    const last = await getSetting("lastTendency", null);
+    initial = initialTendency(carryover, last);
   } catch (_) {
-    /* 保存が使えない環境では骨格表示のみで続行する */
+    /* 保存が使えない環境では通常の入口・通常の傾向で続行する */
   }
+  selectTendency(initial, { record: false });
+  drawQuestion();
+  goEntry();
 })();
-selectTendency("daily");
-drawQuestion();
-goEntry();
