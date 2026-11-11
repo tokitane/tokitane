@@ -34,9 +34,15 @@
       <li>通知は届きません。再会は、アプリを開いたときに</li>
       <li>時期は「近いうち」「少し先」「忘れた頃」から選べます</li>
     </ul>
+    <div class="browser-notice" hidden>
+      <p class="browser-notice-title">今は、アプリの中のブラウザで開いています</p>
+      <p>このままではホーム画面に追加できず、言葉も通常のブラウザとは別の場所に保存されます。いつものブラウザで開き直してください。</p>
+      <button class="btn-secondary" data-open-guide>開き直しかたを見る</button>
+    </div>
   </div>
   <div class="float-bottom">
     <button class="btn-primary" id="btn-start">はじめる</button>
+    <button class="btn-text" data-open-guide>ホーム画面への追加のしかた</button>
   </div>
 </section>
 
@@ -45,6 +51,11 @@
   <div class="brand">
     <svg width="18" height="18" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" style="fill:var(--rose)"/><path d="M50 70 C52 62, 52 55, 50 48" fill="none" style="stroke:var(--rose-on)" stroke-width="5" stroke-linecap="round"/><path d="M50 48 C41 47, 33.5 40.5, 30 32 C38.5 31, 46.5 37.5, 50 48 Z" style="fill:var(--rose-on)"/><path d="M50 48 C59 47, 66.5 40.5, 70 32 C61.5 31, 53.5 37.5, 50 48 Z" style="fill:var(--rose-on)"/></svg>
     ときたね
+  </div>
+  <div class="browser-notice" hidden>
+    <p class="browser-notice-title">今は、アプリの中のブラウザで開いています</p>
+    <p>このままではホーム画面に追加できず、言葉も通常のブラウザとは別の場所に保存されます。いつものブラウザで開き直してください。</p>
+    <button class="btn-secondary" data-open-guide>開き直しかたを見る</button>
   </div>
   <div class="bud-motif anim-root" aria-hidden="true">
     <svg width="36" height="36" viewBox="0 0 40 40">
@@ -227,7 +238,8 @@
   </div>
   <div class="home-guide" id="home-guide" hidden>
     <h3>ホーム画面から開けるようにしますか？</h3>
-    <p>ブラウザの共有やメニューから「ホーム画面に追加」を選ぶと、アプリのように開けて、保存も安定します。追加しなくても、このまま使えます。</p>
+    <p id="home-guide-text">ブラウザの共有やメニューから「ホーム画面に追加」を選ぶと、アプリのように開けて、保存も安定します。追加しなくても、このまま使えます。</p>
+    <button class="btn-secondary" data-open-guide>追加のしかたを見る</button>
     <button class="btn-text" id="home-guide-close">閉じる</button>
   </div>
   <div class="float-bottom">
@@ -262,9 +274,48 @@
 </div>
 <div class="sheet" id="export-sheet" role="dialog" aria-modal="true" aria-labelledby="export-title">
   <h3 id="export-title">言葉を書き出しますか？</h3>
-  <p class="settings-note" style="text-align:center;margin-bottom:8px">ファイルには、預けた言葉の全文が入ります。ファイルは大切に保管してください。</p>
-  <button class="btn-primary" id="export-do">このまま書き出す</button>
+  <p class="settings-note" style="text-align:center;margin-bottom:8px">書き出し方を選んでください。ファイルには、預けた言葉が入ります。</p>
+  <button class="btn-primary" id="export-plain">そのまま書き出す</button>
+  <button class="btn-secondary" id="export-encrypted">パスワードを付けて書き出す</button>
+  <p class="settings-note" style="text-align:center">そのままのファイルは、開いた人が言葉を読めます。置き場所や渡す相手に気をつけてください。</p>
   <button class="btn-text" id="export-cancel">やめる</button>
+</div>
+<div class="sheet" id="password-sheet" role="dialog" aria-modal="true" aria-labelledby="password-title">
+  <h3 id="password-title">パスワードを決めてください</h3>
+  <p class="settings-note" style="text-align:center;margin-bottom:8px">読み込みのときに、このパスワードが必要になります。忘れると、そのファイルから言葉を戻せません。</p>
+  <label class="field-label" for="export-pass-1">パスワード（8文字以上）</label>
+  <input class="text-input" type="password" id="export-pass-1" autocomplete="new-password">
+  <label class="field-label" for="export-pass-2">もう一度入力してください</label>
+  <input class="text-input" type="password" id="export-pass-2" autocomplete="new-password">
+  <p class="form-error" id="export-pass-error" role="alert"></p>
+  <button class="btn-primary" id="export-encrypted-do">暗号化して書き出す</button>
+  <button class="btn-text" id="export-encrypted-cancel">やめる</button>
+</div>
+<div class="sheet" id="unlock-sheet" role="dialog" aria-modal="true" aria-labelledby="unlock-title">
+  <h3 id="unlock-title">パスワードを入力してください</h3>
+  <p class="settings-note" style="text-align:center;margin-bottom:8px">このファイルは、パスワード付きで書き出されています。</p>
+  <label class="field-label" for="import-pass">パスワード</label>
+  <input class="text-input" type="password" id="import-pass" autocomplete="current-password">
+  <p class="form-error" id="import-pass-error" role="alert"></p>
+  <button class="btn-primary" id="import-unlock-do">読み込む</button>
+  <button class="btn-text" id="import-unlock-cancel">やめる</button>
+</div>
+<div class="sheet guide-sheet" id="guide-sheet" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+  <div class="guide-art" aria-hidden="true">
+    <svg width="168" height="92" viewBox="0 0 168 92">
+      <rect x="58" y="7" width="52" height="78" rx="10" fill="none" style="stroke:var(--rose)" stroke-width="2.5"/>
+      <path d="M84 66 C84.7 59, 84.7 52, 84 47" fill="none" style="stroke:var(--rose)" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M84 47 C79.5 46.5, 76 43, 75.2 38 C79.7 38.5, 83.2 42, 84 47 Z" style="fill:var(--rose)"/>
+      <path d="M84 47 C88.5 46.5, 92 43, 92.8 38 C88.3 38.5, 84.8 42, 84 47 Z" style="fill:var(--rose)"/>
+      <path d="M118 38 H142 M130 26 V50" fill="none" style="stroke:var(--accent)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M28 46 H48 M42 38 L50 46 L42 54" fill="none" style="stroke:var(--pastel-mid)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <h3 id="guide-title">ホーム画面に追加する</h3>
+  <p class="guide-lead" id="guide-lead"></p>
+  <ol class="guide-steps" id="guide-steps"></ol>
+  <p class="settings-note" id="guide-note"></p>
+  <button class="btn-primary" id="guide-close">閉じる</button>
 </div>
 
 <!-- ============ 画面9：再会した言葉 ============ -->
@@ -294,11 +345,28 @@
   </div>
 
   <div class="settings-group">
+    <h3>画面の切り替わり</h3>
+    <div class="settings-card" role="radiogroup" aria-label="画面の切り替わり">
+      <button class="radio-row" role="radio" aria-checked="true" data-motion="slow">
+        <span class="radio-dot"></span><span class="radio-label">ゆっくり</span>
+      </button>
+      <button class="radio-row" role="radio" aria-checked="false" data-motion="normal">
+        <span class="radio-dot"></span><span class="radio-label">ふつう</span>
+      </button>
+    </div>
+    <p class="settings-note">画面が切り替わる速さを選べます。芽の動きは変わりません。</p>
+  </div>
+
+  <div class="settings-group">
     <h3>データについて</h3>
     <div class="settings-card data-text">
       <p>言葉は、この端末の中だけに保存されます。サーバーへ送ることはなく、アカウントもありません。</p>
       <p>アプリやブラウザのデータを削除すると、保存した言葉も失われます。残しておきたい言葉は、書き出して保管できます。ホーム画面に追加すると、保存が安定します。</p>
+      <p>書き出しは、そのままのファイルか、パスワード付きのファイルかを選べます。そのままのファイルは、開いた人が言葉を読めます。パスワード付きのファイルは、読み込みのときにパスワードが必要です。パスワードを忘れると、そのファイルから言葉を戻せません。</p>
       <p>通知は届きません。預けた言葉は、時期が来たあと、次にアプリを開いたときに現れます。</p>
+    </div>
+    <div class="settings-card" style="margin-top:10px">
+      <button class="btn-secondary" data-open-guide>ホーム画面への追加方法</button>
     </div>
     <p class="settings-note"><a href="privacy.html" style="color:var(--rose)">プライバシーポリシー</a></p>
   </div>
@@ -310,7 +378,7 @@
       <button class="btn-secondary" id="btn-import">言葉を読み込む</button>
       <input type="file" id="import-file" accept="application/json,.json" hidden>
     </div>
-    <p class="settings-note">書き出したファイルには、言葉の全文が入ります。大切に保管してください。</p>
+    <p class="settings-note">書き出しのときに、そのままのファイルか、パスワード付きのファイルかを選べます。</p>
   </div>
 
   <div class="settings-group">

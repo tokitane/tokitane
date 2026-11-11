@@ -28,6 +28,24 @@
   --ease: ease-out;
   --ease-soft: cubic-bezier(0.22, 0.61, 0.21, 1);
   --dur: 0.45s;
+
+  /* 画面の切り替わり（設定で切り替える。既定は「ゆっくり」） */
+  --dur-view: 0.7s;
+  --dur-child: 0.85s;
+  --dur-sheet: 0.7s;
+  --dur-question: 0.8s;
+  --dur-seal: 0.55s;
+  --dur-color: 0.45s;
+}
+
+/* 設定「ふつう」：画面遷移だけを短くする（芽の動きは対象外） */
+:root[data-motion="normal"] {
+  --dur-view: 0.32s;
+  --dur-child: 0.38s;
+  --dur-sheet: 0.34s;
+  --dur-question: 0.38s;
+  --dur-seal: 0.3s;
+  --dur-color: 0.25s;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -174,7 +192,7 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
 }
 .seal-group { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .seal { width: 200px; height: 200px; }
-.seal.opening { animation: sealOpen 0.55s var(--ease) both; }
+.seal.opening { animation: sealOpen var(--dur-seal) var(--ease) both; }
 @keyframes sealOpen { to { transform: scale(1.07); opacity: 0; } }
 .reunion-h { font-family: var(--font-maru); font-weight: 700; font-size: 24px; text-align: center; margin: 16px 0 4px; }
 .reunion-sub { text-align: center; font-size: 14px; color: var(--ink-soft); }
@@ -192,7 +210,7 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
   font-family: var(--font-maru); font-weight: 700; font-size: 28px;
   line-height: 1.55; margin-top: 10px; min-height: 118px;
 }
-.q-text.fade { animation: qFade 0.8s var(--ease-soft) both; }
+.q-text.fade { animation: qFade var(--dur-question) var(--ease-soft) both; }
 @keyframes qFade { from { opacity: 0; } to { opacity: 1; } }
 .shuffle {
   width: 52px; height: 52px; border-radius: 50%;
@@ -274,7 +292,7 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 31;
   background: var(--surface); border-radius: 28px 28px 0 0;
   padding: 22px 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
-  transform: translateY(105%); transition: transform 0.7s var(--ease-soft);
+  transform: translateY(105%); transition: transform var(--dur-sheet) var(--ease-soft);
   display: flex; flex-direction: column; gap: 10px;
 }
 .sheet.show { transform: translateY(0); }
@@ -372,11 +390,11 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
 
 /* 3. 時期選択：選んだ円の芽が一段育ち、色が淡→濃へ */
 .p-bud { transform-origin: 50% 100%; }
-.period .p-bud-pale { opacity: 1; transition: opacity 0.45s var(--ease); }
-.period .p-bud-rose { opacity: 0; transition: opacity 0.45s var(--ease); }
+.period .p-bud-pale { opacity: 1; transition: opacity var(--dur-color) var(--ease); }
+.period .p-bud-rose { opacity: 0; transition: opacity var(--dur-color) var(--ease); }
 .period.sel .p-bud-pale { opacity: 0; }
 .period.sel .p-bud-rose { opacity: 1; }
-.period .p-ring { stroke: var(--pastel-mid); stroke-width: 2; transition: stroke 0.45s var(--ease); }
+.period .p-ring { stroke: var(--pastel-mid); stroke-width: 2; transition: stroke var(--dur-color) var(--ease); }
 .period.sel .p-ring { stroke: var(--rose); stroke-width: 2.5; }
 .p-leaf-l { transform-origin: 100% 100%; }
 .p-leaf-r { transform-origin: 0% 100%; }
@@ -410,6 +428,39 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
   100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
+/* ---------- ブラウザの注意・追加手順の案内（P1） ---------- */
+.browser-notice {
+  background: var(--surface); border: 1px solid var(--card-line);
+  border-radius: 24px; padding: 18px 20px; margin-top: 18px;
+  box-shadow: var(--shadow-card); text-align: left;
+}
+.browser-notice-title {
+  font-family: var(--font-maru); font-weight: 700; font-size: 15.5px; color: var(--rose);
+}
+.browser-notice p { font-size: 14px; line-height: 1.8; margin-top: 6px; }
+.browser-notice .btn-secondary { margin-top: 12px; }
+.guide-art { display: flex; justify-content: center; padding-top: 2px; }
+.guide-lead { font-size: 14.5px; line-height: 1.8; text-align: center; }
+.guide-steps { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.guide-steps li {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--base); border: 1px solid var(--line);
+  border-radius: 18px; padding: 12px 14px;
+  font-size: 14.5px; line-height: 1.7; text-align: left;
+}
+.guide-step-num {
+  flex: 0 0 auto; width: 28px; height: 28px; border-radius: 9px;
+  background: var(--rose); color: var(--rose-on);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; margin-top: 1px;
+}
+.field-label { display: block; font-size: 13.5px; color: var(--ink-soft); text-align: left; }
+.text-input {
+  width: 100%; min-height: 52px; border: 1px solid var(--card-line); border-radius: 16px;
+  background: var(--base); color: var(--ink); font: inherit; font-size: 16.5px; padding: 10px 14px;
+}
+.form-error { color: var(--rose); font-size: 13.5px; min-height: 1.6em; text-align: center; line-height: 1.6; }
+
 /* ---------- ホーム画面追加の案内（M6） ---------- */
 .home-guide {
   background: var(--surface); border: 1px solid var(--card-line);
@@ -429,13 +480,13 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
 .welcome-facts li { font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; }
 
 /* ---------- 画面遷移と操作の手触り（M5.5） ---------- */
-.view.active { animation: viewIn 0.7s ease both; }
+.view.active { animation: viewIn var(--dur-view) ease both; }
 @keyframes viewIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 /* 中身の要素が少しずつ時間差で浮かび上がる（最大0.2秒差まで） */
-.view.active > * { animation: childIn 0.85s var(--ease-soft) both; }
+.view.active > * { animation: childIn var(--dur-child) var(--ease-soft) both; }
 .view.active > *:nth-child(2) { animation-delay: 0.07s; }
 .view.active > *:nth-child(3) { animation-delay: 0.14s; }
 .view.active > *:nth-child(4) { animation-delay: 0.21s; }
@@ -444,7 +495,7 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-button { transition: transform 0.25s var(--ease-soft), background-color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease, color 0.4s ease, opacity 0.3s ease; }
+button { transition: transform 0.25s var(--ease-soft), background-color var(--dur-color) ease, border-color var(--dur-color) ease, box-shadow var(--dur-color) ease, color var(--dur-color) ease, opacity 0.3s ease; }
 .btn-primary:active, .btn-secondary:active, .tend:active, .period:active,
 .holding-item:active, .reunited-item:active, .longpress:active { transform: scale(0.97); }
 .btn-text:active, .back-btn:active, .nav-link:active { opacity: 0.55; }
