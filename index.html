@@ -4,30 +4,319 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#FDF4F0">
+<meta name="description" content="過去の自分の言葉と、忘れた頃に再会する記録アプリ">
 <title>ときたね</title>
-<style>
-  :root{
-    --base:#FDF4F0; --surface:#FFFBF8; --text:#4A3338;
-    --main:#B44E66; --pink:#F7D9DE; --pink-mid:#F0BFC8; --accent:#E39A54;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{
-    background:var(--base); color:var(--text);
-    font-family:"Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
-    min-height:100svh; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:20px; padding:24px;
-  }
-  h1{font-size:32px; font-weight:600;}
-  p{font-size:17px;}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <svg width="96" height="96" viewBox="0 0 100 100" aria-hidden="true">
-    <path d="M50 78 C50 66 50 58 50 50" stroke="#B44E66" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M50 50 C40 50 30 44 28 32 C40 32 48 38 50 50 Z" fill="#B44E66"/>
-    <path d="M50 50 C60 50 70 44 72 32 C60 32 52 38 50 50 Z" fill="#B44E66"/>
-  </svg>
-  <h1>ときたね</h1>
-  <p>今日はどうしたい？</p>
+
+<!-- ============ 画面1：入口（再会がない日） ============ -->
+<section class="view active" id="view-entry" aria-label="入口">
+  <div class="brand">
+    <svg width="18" height="18" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" style="fill:var(--rose)"/><path d="M50 70 C52 62, 52 55, 50 48" fill="none" style="stroke:var(--rose-on)" stroke-width="5" stroke-linecap="round"/><path d="M50 48 C41 47, 33.5 40.5, 30 32 C38.5 31, 46.5 37.5, 50 48 Z" style="fill:var(--rose-on)"/><path d="M50 48 C59 47, 66.5 40.5, 70 32 C61.5 31, 53.5 37.5, 50 48 Z" style="fill:var(--rose-on)"/></svg>
+    ときたね
+  </div>
+  <div class="bud-motif anim-root" aria-hidden="true">
+    <svg width="36" height="36" viewBox="0 0 40 40">
+      <g class="eb-stem"><path d="M20 35 C20.8 30, 20.8 25.5, 20 21" fill="none" style="stroke:var(--rose)" stroke-width="2.6" stroke-linecap="round"/></g>
+      <g class="eb-leaf-l"><path d="M20 22 C14.8 21.4, 11 17.6, 10 12.4 C15.2 12.8, 18.9 16.8, 20 22 Z" style="fill:var(--rose)"/></g>
+      <g class="eb-leaf-r"><path d="M20 22 C25.2 21.4, 29 17.6, 30 12.4 C24.8 12.8, 21.1 16.8, 20 22 Z" style="fill:var(--rose)"/></g>
+    </svg>
+  </div>
+  <h1 class="entry-q">今日はどうしたい？</h1>
+  <div class="tend-list" role="radiogroup" aria-label="傾向を選ぶ">
+    <button class="tend" role="radio" aria-checked="false" data-tendency="light">
+      <span class="tend-icon">
+        <svg width="44" height="44" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" style="stroke:var(--rose)" stroke-width="1.8"/><path d="M24 35 C24.5 30, 24.5 25.5, 24 21" fill="none" style="stroke:var(--rose)" stroke-width="2" stroke-linecap="round"/><path d="M24 21 C29.5 20, 32.5 16.6, 33 11.8 C27.6 12.7, 24.6 16.2, 24 21 Z" style="fill:var(--rose)"/></svg>
+        <span class="tend-sel-dot"></span>
+      </span>
+      <span><span class="tname">さらっと書く</span><span class="tsub" style="display:block">目に入った景色や音を、そのまま書く</span></span>
+    </button>
+    <button class="tend sel" role="radio" aria-checked="true" data-tendency="daily">
+      <span class="tend-icon">
+        <svg width="44" height="44" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" style="stroke:var(--rose)" stroke-width="1.8"/><path d="M24 35 C24.6 29.5, 24.6 24.5, 24 19.5" fill="none" style="stroke:var(--rose)" stroke-width="2" stroke-linecap="round"/><path d="M24 20.5 C19 19.9, 15.9 16.6, 15.2 11.9 C19.9 12.5, 23 15.9, 24 20.5 Z" style="fill:var(--rose)"/><path d="M24 20.5 C29 19.9, 32.1 16.6, 32.8 11.9 C28.1 12.5, 25 15.9, 24 20.5 Z" style="fill:var(--rose)"/></svg>
+        <span class="tend-sel-dot"></span>
+      </span>
+      <span><span class="tname">今日を残す</span><span class="tsub" style="display:block">今日のことを、少しだけ残しておく</span></span>
+    </button>
+    <button class="tend" role="radio" aria-checked="false" data-tendency="deep">
+      <span class="tend-icon">
+        <svg width="44" height="44" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" style="stroke:var(--rose)" stroke-width="1.8"/><path d="M24 37 C24.7 30, 24.7 22.5, 24 16.5" fill="none" style="stroke:var(--rose)" stroke-width="2" stroke-linecap="round"/><path d="M24 18 C18.6 17.3, 15.2 13.7, 14.4 8.6 C19.6 9.3, 23.2 13.2, 24 18 Z" style="fill:var(--rose)"/><path d="M24 18 C29.4 17.3, 32.8 13.7, 33.6 8.6 C28.4 9.3, 24.8 13.2, 24 18 Z" style="fill:var(--rose)"/></svg>
+        <span class="tend-sel-dot"></span>
+      </span>
+      <span><span class="tname">ゆっくり向き合う</span><span class="tsub" style="display:block">振り返りたいことや、途中になっていることを書く</span></span>
+    </button>
+  </div>
+  <div class="float-bottom">
+    <nav class="entry-nav" aria-label="その他の画面">
+      <button data-go="view-holding">預かり中</button><i>・</i>
+      <button data-go="view-reunited">再会した言葉</button><i>・</i>
+      <button data-go="view-settings">設定</button>
+    </nav>
+  </div>
+</section>
+
+<!-- ============ 画面2：入口（再会がある日）／再会の封 ============ -->
+<section class="view" id="view-entry-reunion" aria-label="再会がある日の入口">
+  <div class="brand">
+    <svg width="18" height="18" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" style="fill:var(--rose)"/><path d="M50 70 C52 62, 52 55, 50 48" fill="none" style="stroke:var(--rose-on)" stroke-width="5" stroke-linecap="round"/><path d="M50 48 C41 47, 33.5 40.5, 30 32 C38.5 31, 46.5 37.5, 50 48 Z" style="fill:var(--rose-on)"/><path d="M50 48 C59 47, 66.5 40.5, 70 32 C61.5 31, 53.5 37.5, 50 48 Z" style="fill:var(--rose-on)"/></svg>
+    ときたね
+  </div>
+  <h1 class="entry-q-small">今日はどうしたい？</h1>
+  <div class="seal-group">
+    <div class="anim-root">
+      <svg class="seal" id="seal-svg" viewBox="0 0 200 200" role="img" aria-label="預けた言葉の封">
+        <circle cx="100" cy="100" r="97" style="fill:var(--pastel);stroke:var(--rose)" stroke-width="3"/>
+        <g class="seal-bud">
+          <path d="M100 140 C101.6 127, 101.6 113, 100 102" fill="none" style="stroke:var(--rose)" stroke-width="5" stroke-linecap="round"/>
+          <g class="seal-leaf-l"><path d="M100 102 C85 100.5, 73 86, 70 68 C84 69, 97.5 85, 100 102 Z" style="fill:var(--rose)"/></g>
+          <g class="seal-leaf-r"><path d="M100 102 C115 100.5, 127 86, 130 68 C116 69, 102.5 85, 100 102 Z" style="fill:var(--rose)"/></g>
+        </g>
+      </svg>
+    </div>
+    <h2 class="reunion-h">預けた言葉があります</h2>
+    <p class="reunion-sub">封を開くと読めます</p>
+    <p class="seal-context">2026年9月12日／ゆっくり向き合って書いた言葉</p>
+    <div class="seal-open-btn">
+      <button class="btn-primary" id="btn-open-seal">開く</button>
+    </div>
+  </div>
+  <div class="reunion-later">
+    <button class="btn-text" id="btn-defer-later">しばらく先へ回す</button>
+    <button class="btn-text" id="btn-defer-today">今日は見ない</button>
+  </div>
+</section>
+
+<!-- ============ 画面3：再会（開封後）＋読後の選択 ============ -->
+<section class="view" id="view-reunion" aria-label="再会した言葉">
+  <div class="back-row"><button class="back-btn" data-go="view-entry">‹ 入口へ</button></div>
+  <div class="reunion-head">
+    <p class="rdate">2026年9月12日に書いた言葉</p>
+    <p class="rq">今日、時間をかけたことは？</p>
+  </div>
+  <div class="letter-card">
+    <p class="reunion-body" tabindex="-1" id="reunion-body">夕方、ベランダの鉢植えに水をやった。土の色が少しずつ戻っていくのを、ぼーっと見ていた。何かを作ったわけでもないけど、あの時間は悪くなかったと思う。</p>
+  </div>
+  <div class="after-btns">
+    <button class="btn-primary" data-after="deposit">また未来へ預ける</button>
+    <button class="btn-secondary" data-after="reply">今の自分から一言返す</button>
+    <button class="btn-text" data-after="close">このまま閉じる</button>
+  </div>
+</section>
+
+<!-- ============ 画面4：問い ============ -->
+<section class="view" id="view-question" aria-label="問い">
+  <div class="back-row"><button class="back-btn" data-go="view-entry">‹ 入口へ</button></div>
+  <div class="q-card">
+    <p class="q-text" id="q-text" aria-live="polite">今日、ふと手に取ったものは？</p>
+    <button class="shuffle" id="btn-shuffle" aria-label="別の問いに変える">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="stroke:var(--rose-on)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
+    </button>
+  </div>
+  <p class="q-tendency-note" id="q-tendency-note">「今日を残す」で書いています</p>
+  <button class="btn-text" id="btn-no-question">問いなしで書く</button>
+  <div class="float-bottom">
+    <button class="btn-primary" id="btn-to-write">書く</button>
+  </div>
+</section>
+
+<!-- ============ 画面5：書く ============ -->
+<section class="view" id="view-write" aria-label="言葉を書く">
+  <div class="back-row"><button class="back-btn" data-go="view-question">‹ 問いへ</button></div>
+  <div class="write-q" id="write-q">今日、ふと手に取ったものは？</div>
+  <label class="write-label" for="write-body">言葉を書く</label>
+  <textarea class="write-area" id="write-body"></textarea>
+  <div class="float-bottom">
+    <button class="btn-primary" data-go="view-period">次へ</button>
+  </div>
+</section>
+
+<!-- ============ 画面6：時期選択 ============ -->
+<section class="view" id="view-period" aria-label="時期を選ぶ">
+  <div class="back-row"><button class="back-btn" data-go="view-write">‹ 書くへ</button></div>
+  <h2 class="period-h">未来の自分へ預ける</h2>
+  <div class="period-row" role="radiogroup" aria-label="時期を選ぶ">
+    <button class="period" role="radio" aria-checked="false" data-period="soon">
+      <span class="pcircle">
+        <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+          <path d="M5.7 50.8 A36 36 0 0 0 74.3 50.8 Z" style="fill:var(--pastel)"/>
+          <circle class="p-ring" cx="40" cy="40" r="36" fill="none"/>
+          <g class="p-bud-pale"><g class="p-bud"><path d="M40 56 C40.5 49, 40.5 42, 40 36" fill="none" style="stroke:var(--pastel-mid)" stroke-width="2" stroke-linecap="round"/><g class="p-leaf-r"><path d="M40 36 C47.8 34.6, 51.7 30, 52 22 C44.2 23.4, 40.3 28, 40 36 Z" style="fill:var(--pastel-mid)"/></g></g></g>
+          <g class="p-bud-rose"><g class="p-bud"><path d="M40 56 C40.5 49, 40.5 42, 40 36" fill="none" style="stroke:var(--rose)" stroke-width="2" stroke-linecap="round"/><g class="p-leaf-r"><path d="M40 36 C47.8 34.6, 51.7 30, 52 22 C44.2 23.4, 40.3 28, 40 36 Z" style="fill:var(--rose)"/></g></g></g>
+        </svg>
+      </span>
+      <span class="plabel">近いうち</span>
+    </button>
+    <button class="period" role="radio" aria-checked="false" data-period="later">
+      <span class="pcircle">
+        <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+          <path d="M6 61.2 A44 44 0 0 0 90 61.2 Z" style="fill:var(--pastel)"/>
+          <circle class="p-ring" cx="48" cy="48" r="44" fill="none"/>
+          <g class="p-bud-pale"><g class="p-bud"><path d="M48 66 C48.7 58, 48.7 50, 48 43" fill="none" style="stroke:var(--pastel-mid)" stroke-width="2.2" stroke-linecap="round"/><g class="p-leaf-l"><path d="M48 43 C47.5 34.1, 42.9 28.8, 34 27 C34.5 35.9, 39.1 41.2, 48 43 Z" style="fill:var(--pastel-mid)"/></g><g class="p-leaf-r"><path d="M48 43 C48.5 34.1, 53.1 28.8, 62 27 C61.5 35.9, 56.9 41.2, 48 43 Z" style="fill:var(--pastel-mid)"/></g></g></g>
+          <g class="p-bud-rose"><g class="p-bud"><path d="M48 66 C48.7 58, 48.7 50, 48 43" fill="none" style="stroke:var(--rose)" stroke-width="2.2" stroke-linecap="round"/><g class="p-leaf-l"><path d="M48 43 C47.5 34.1, 42.9 28.8, 34 27 C34.5 35.9, 39.1 41.2, 48 43 Z" style="fill:var(--rose)"/></g><g class="p-leaf-r"><path d="M48 43 C48.5 34.1, 53.1 28.8, 62 27 C61.5 35.9, 56.9 41.2, 48 43 Z" style="fill:var(--rose)"/></g></g></g>
+        </svg>
+      </span>
+      <span class="plabel">少し先</span>
+    </button>
+    <button class="period" role="radio" aria-checked="false" data-period="forgotten">
+      <span class="pcircle">
+        <svg width="112" height="112" viewBox="0 0 112 112" aria-hidden="true">
+          <path d="M6.4 71.6 A52 52 0 0 0 105.6 71.6 Z" style="fill:var(--pastel)"/>
+          <circle class="p-ring" cx="56" cy="56" r="52" fill="none"/>
+          <g class="p-bud-pale"><g class="p-bud"><path d="M56 78 C56.8 68, 56.8 57, 56 46" fill="none" style="stroke:var(--pastel-mid)" stroke-width="2.4" stroke-linecap="round"/><g class="p-leaf-l"><path d="M56 46 C55.3 36.1, 50 30.8, 40 30 C40.7 39.9, 46 45.2, 56 46 Z" style="fill:var(--pastel-mid)"/></g><g class="p-leaf-r"><path d="M56 46 C56.7 36.1, 62 30.8, 72 30 C71.3 39.9, 66 45.2, 56 46 Z" style="fill:var(--pastel-mid)"/></g></g></g>
+          <g class="p-bud-rose"><g class="p-bud"><path d="M56 78 C56.8 68, 56.8 57, 56 46" fill="none" style="stroke:var(--rose)" stroke-width="2.4" stroke-linecap="round"/><g class="p-leaf-l"><path d="M56 46 C55.3 36.1, 50 30.8, 40 30 C40.7 39.9, 46 45.2, 56 46 Z" style="fill:var(--rose)"/></g><g class="p-leaf-r"><path d="M56 46 C56.7 36.1, 62 30.8, 72 30 C71.3 39.9, 66 45.2, 56 46 Z" style="fill:var(--rose)"/></g></g></g>
+        </svg>
+      </span>
+      <span class="plabel">忘れた頃</span>
+    </button>
+  </div>
+  <p class="period-note">時期は、あとから預かり中で変えられます</p>
+  <div class="float-bottom">
+    <button class="btn-primary" id="btn-deposit" disabled>預ける</button>
+  </div>
+</section>
+
+<!-- ============ 画面7：預け完了 ============ -->
+<section class="view" id="view-done" aria-label="預け完了">
+  <div class="done-group">
+    <div class="anim-root">
+      <svg width="132" height="118" viewBox="0 0 120 110" aria-hidden="true">
+        <path d="M18 102 Q60 88 102 102 Q60 109 18 102 Z" style="fill:var(--pastel-mid)"/>
+        <g class="done-stem"><path d="M60 100 C61 88, 61 74, 60 62" fill="none" style="stroke:var(--rose)" stroke-width="4" stroke-linecap="round"/></g>
+        <g class="done-leaf-l"><path d="M60 62 C48 60.5, 38.5 49, 36 34 C48 35, 58 48, 60 62 Z" style="fill:var(--rose)"/></g>
+        <g class="done-leaf-r"><path d="M60 62 C72 60.5, 81.5 49, 84 34 C72 35, 62 48, 60 62 Z" style="fill:var(--rose)"/></g>
+      </svg>
+    </div>
+    <h2 class="done-h">預けたよ</h2>
+    <p class="done-sub">選んだ時期になったら、次にアプリを開いたときに現れます。</p>
+  </div>
+  <div class="float-bottom">
+    <button class="btn-primary" data-go="view-entry">入口へ</button>
+  </div>
+</section>
+
+<!-- ============ 画面8：預かり中 ============ -->
+<section class="view" id="view-holding" aria-label="預かり中">
+  <div class="back-row"><button class="back-btn" data-go="view-entry">‹ 入口へ</button></div>
+  <h2 class="screen-title">預かり中</h2>
+  <p class="holding-note">預けた言葉は、時期が来るまで開けません</p>
+  <div class="holding-grid" id="holding-grid">
+    <button class="holding-item" data-period-label="近いうち" aria-label="預かり中の言葉（近いうち）">
+      <svg width="72" height="72" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="36" style="fill:var(--pastel);stroke:var(--rose)" stroke-width="2"/></svg>
+    </button>
+    <button class="holding-item" data-period-label="少し先" aria-label="預かり中の言葉（少し先）">
+      <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="36" style="fill:var(--pastel);stroke:var(--rose)" stroke-width="2"/></svg>
+    </button>
+    <button class="holding-item" data-period-label="忘れた頃" aria-label="預かり中の言葉（忘れた頃）">
+      <svg width="68" height="68" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="36" style="fill:var(--pastel);stroke:var(--rose)" stroke-width="2"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- 預かり中のシート -->
+<div class="sheet-backdrop" id="sheet-backdrop"></div>
+<div class="sheet" id="holding-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <h3 id="sheet-title">近いうちに預けた言葉</h3>
+  <button class="btn-secondary" id="sheet-change">時期を変える</button>
+  <button class="btn-danger-outline" id="sheet-delete">消す</button>
+  <button class="btn-text" id="sheet-close">閉じる</button>
+</div>
+
+<!-- ============ 画面9：再会した言葉 ============ -->
+<section class="view" id="view-reunited" aria-label="再会した言葉">
+  <div class="back-row"><button class="back-btn" data-go="view-entry">‹ 入口へ</button></div>
+  <h2 class="screen-title">再会した言葉</h2>
+  <div class="reunited-list">
+    <button class="reunited-item" data-go="view-reunion">
+      <span class="idate">2026年9月12日</span>
+      <span class="iq" style="display:block">今日、時間をかけたことは？</span>
+      <span class="ibody" style="display:block">夕方、ベランダの鉢植えに水をやった。土の色が少しずつ戻っていくのを、ぼーっと見ていた。</span>
+    </button>
+    <button class="reunited-item" data-go="view-reunion">
+      <span class="idate">2026年10月3日</span>
+      <span class="iq" style="display:block">今日すれ違った景色で、少しだけ覚えているものは？</span>
+      <span class="ibody" style="display:block">帰り道、自転車を押しながら渡った橋の上。川面が夕日の色に染まっていて、思わず立ち止まった。</span>
+    </button>
+  </div>
+</section>
+
+<!-- ============ 画面10：設定 ============ -->
+<section class="view" id="view-settings" aria-label="設定">
+  <div class="back-row"><button class="back-btn" data-go="view-entry">‹ 入口へ</button></div>
+  <h2 class="screen-title">設定</h2>
+
+  <div class="settings-group">
+    <h3>開いたときの傾向</h3>
+    <div class="settings-card" role="radiogroup" aria-label="開いたときの傾向">
+      <button class="radio-row" role="radio" aria-checked="true" data-carryover="off">
+        <span class="radio-dot"></span><span class="radio-label">いつも「今日を残す」から始める</span>
+      </button>
+      <button class="radio-row" role="radio" aria-checked="false" data-carryover="on">
+        <span class="radio-dot"></span><span class="radio-label">前回の傾向のまま始める</span>
+      </button>
+    </div>
+    <p class="settings-note">「ゆっくり向き合う」は、引き継がずに毎回その場で選びます。</p>
+  </div>
+
+  <div class="settings-group">
+    <h3>データについて</h3>
+    <div class="settings-card data-text">
+      <p>言葉は、この端末の中だけに保存されます。サーバーへ送ることはなく、アカウントもありません。</p>
+      <p>アプリやブラウザのデータを削除すると、保存した言葉も失われます。残しておきたい言葉は、書き出して保管できます。ホーム画面に追加すると、保存が安定します。</p>
+      <p>通知は届きません。預けた言葉は、時期が来たあと、次にアプリを開いたときに現れます。</p>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <h3>書き出し・読み込み</h3>
+    <div class="settings-card" style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn-secondary" data-m1-note>言葉を書き出す</button>
+      <button class="btn-secondary" data-m1-note>言葉を読み込む</button>
+    </div>
+    <p class="settings-note">書き出し・読み込みは、開発の後半（M5）で使えるようになります。</p>
+  </div>
+
+  <div class="settings-group">
+    <h3>すべて消す</h3>
+    <div class="settings-card">
+      <button class="btn-danger-outline" data-go="view-delete1">すべての言葉を消す</button>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <h3>開発中の確認（M1のみ）</h3>
+    <div class="settings-card dev-links">
+      <button data-go="view-entry-reunion">再会がある日の入口を見る</button>
+      <button data-go="view-reunion">再会（開封後）の画面を見る</button>
+      <button data-go="view-done">預け完了の画面を見る</button>
+    </div>
+    <p class="settings-note">骨格確認用のリンクです。実データで動くようになる段階で外します。</p>
+  </div>
+</section>
+
+<!-- ============ 全削除 1段階目 ============ -->
+<section class="view" id="view-delete1" aria-label="すべての言葉を消す確認">
+  <h2 class="confirm-h">すべての言葉を消しますか？</h2>
+  <p class="confirm-body">この端末に保存されている言葉が、すべて消えます。元に戻すことはできません。前に書き出したファイルの中の言葉は、この操作では消えません。</p>
+  <div class="float-bottom confirm-btns">
+    <button class="btn-secondary" data-go="view-delete2">次へ</button>
+    <button class="btn-text" data-go="view-settings">やめる</button>
+  </div>
+</section>
+
+<!-- ============ 全削除 2段階目 ============ -->
+<section class="view" id="view-delete2" aria-label="すべての言葉を消す最終確認">
+  <h2 class="confirm-h">最後の確認です</h2>
+  <p class="confirm-body">消した言葉は戻せません。</p>
+  <div class="float-bottom confirm-btns">
+    <button class="longpress" id="btn-longpress"><span class="fill" id="longpress-fill"></span><span class="label">長押しですべて消す</span></button>
+    <p class="settings-note" id="longpress-note" style="text-align:center"></p>
+    <button class="btn-text" data-go="view-settings">やめる</button>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
