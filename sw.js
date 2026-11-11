@@ -1,7 +1,7 @@
 // ときたね Service Worker（M6）
 // 方針：キャッシュ優先（cache-first）。キャッシュ名に版を含め、アプリを更新するときは
 // この版を上げる。古いキャッシュは有効化時にすべて消すため、旧版と新版が混ざらない。
-const CACHE = "tokitane-v1";
+const CACHE = "tokitane-v2";
 const CORE = [
   "./",
   "./index.html",
