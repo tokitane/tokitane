@@ -10,6 +10,32 @@
 </head>
 <body>
 
+<!-- ============ 画面0：ようこそ（初回だけ） ============ -->
+<section class="view" id="view-welcome" aria-label="はじめの案内">
+  <div class="welcome-group">
+    <div class="anim-root welcome-art">
+      <svg width="188" height="178" viewBox="0 0 200 190" aria-hidden="true">
+        <circle cx="100" cy="92" r="76" style="fill:var(--pastel)"/>
+        <path d="M52 138 Q100 124 148 138 Q100 146 52 138 Z" style="fill:var(--pastel-mid)"/>
+        <g class="done-stem"><path d="M100 140 C101.5 124, 101.5 106, 100 90" fill="none" style="stroke:var(--rose)" stroke-width="5" stroke-linecap="round"/></g>
+        <g class="done-leaf-l"><path d="M100 90 C84 88, 71 73, 67 53 C83 54.5, 97 71, 100 90 Z" style="fill:var(--rose)"/></g>
+        <g class="done-leaf-r"><path d="M100 90 C116 88, 129 73, 133 53 C117 54.5, 103 71, 100 90 Z" style="fill:var(--rose)"/></g>
+      </svg>
+    </div>
+    <p class="welcome-eyebrow">ときたね ― 「とき」の「たね」</p>
+    <h2 class="welcome-h">今日まく言葉が、<br>未来で芽吹く。</h2>
+    <p class="welcome-body">ときたねは、今日の自分の言葉を「時間の種」として預ける場所です。選んだ時期が来た頃、アプリを開くと、預けた言葉がそっと顔を出します。</p>
+    <ul class="welcome-facts">
+      <li>言葉は、この端末の中だけに保存されます</li>
+      <li>通知は届きません。再会は、アプリを開いたときに</li>
+      <li>時期は「近いうち」「少し先」「忘れた頃」から選べます</li>
+    </ul>
+  </div>
+  <div class="float-bottom">
+    <button class="btn-primary" id="btn-start">はじめる</button>
+  </div>
+</section>
+
 <!-- ============ 画面1：入口（再会がない日） ============ -->
 <section class="view active" id="view-entry" aria-label="入口">
   <div class="brand">
