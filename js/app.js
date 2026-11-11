@@ -18,7 +18,14 @@ import {
   setSetting,
   requestPersist,
 } from "./store.js";
-import { buildBackup, validateBackupText, pickNewEntries } from "./backup.js";
+import {
+  buildBackup,
+  validateBackupText,
+  pickNewEntries,
+  isEncryptedBackupText,
+  encryptBackupText,
+  decryptBackupText,
+} from "./backup.js";
 import { todayStr, addDays, dueDateFor, formatJP } from "./dates.js";
 
 const TENDENCY_NAMES = {
@@ -44,6 +51,8 @@ const state = {
   reunionEntry: null, // 開いて読んでいる言葉
   writeMode: "deposit", // "deposit" | "reply"
   replyEntryId: null,
+  transitionSpeed: "slow", // "slow" | "normal"（設定「画面の切り替わり」）
+  pendingImportText: null, // パスワード待ちの暗号化ファイルの中身
 };
 
 // ---------- 画面遷移 ----------
@@ -240,7 +249,7 @@ document.getElementById("btn-open-seal").addEventListener("click", async () => {
     }
     show("view-reunion");
     reunionBody.focus({ preventScroll: true });
-  }, 560);
+  }, state.transitionSpeed === "normal" ? 300 : 560);
 });
 
 document.getElementById("btn-defer-today").addEventListener("click", async () => {
@@ -474,10 +483,145 @@ function openSheet(meta) {
 }
 function closeSheet() {
   backdrop.classList.remove("show");
-  sheet.classList.remove("show");
-  exportSheet.classList.remove("show");
+  document.querySelectorAll(".sheet").forEach((s) => s.classList.remove("show"));
   state.sheetEntryId = null;
 }
+function openSheetEl(el) {
+  closeSheet();
+  backdrop.classList.add("show");
+  el.classList.add("show");
+}
+// ---------- ブラウザ判定と、ホーム画面追加・開き直しの案内（P1） ----------
+const ua = navigator.userAgent || "";
+const isIOS =
+  /iPhone|iPad|iPod/i.test(ua) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/i.test(ua);
+const isLineBrowser = /\bLine\//i.test(ua);
+const isInAppBrowser = isInAppBrowserUA(ua);
+function isInAppBrowserUA(s) {
+  return /\bLine\//i.test(s) || /FBAN|FBAV|Instagram/i.test(s);
+}
+function isStandalone() {
+  return (
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+    window.navigator.standalone === true
+  );
+}
+
+const guideSheet = document.getElementById("guide-sheet");
+const guideTitle = document.getElementById("guide-title");
+const guideLead = document.getElementById("guide-lead");
+const guideSteps = document.getElementById("guide-steps");
+const guideNote = document.getElementById("guide-note");
+function setGuide(title, lead, steps, note) {
+  guideTitle.textContent = title;
+  guideLead.textContent = lead;
+  guideSteps.replaceChildren();
+  steps.forEach((text, i) => {
+    const li = document.createElement("li");
+    const num = document.createElement("span");
+    num.className = "guide-step-num";
+    num.textContent = String(i + 1);
+    const body = document.createElement("span");
+    body.textContent = text;
+    li.appendChild(num);
+    li.appendChild(body);
+    guideSteps.appendChild(li);
+  });
+  guideNote.textContent = note || "";
+  guideNote.style.display = note ? "" : "none";
+}
+function openGuide() {
+  const appName = isLineBrowser ? "LINE" : "アプリ";
+  if (isInAppBrowser) {
+    if (isAndroid) {
+      setGuide(
+        "いつものブラウザで開き直してください",
+        "今は" + appName + "の中のブラウザで開いています。このままではホーム画面に追加できず、言葉も通常のブラウザとは別の場所に保存されます。",
+        [
+          appName + "の画面の右下（または右上）にあるメニュー（︙）を開く",
+          "「他のブラウザで開く」または「Chromeで開く」を選ぶ",
+          "Chromeで ときたね が開いたら、右上のメニュー（︙）から「アプリをインストール」を選ぶ",
+        ],
+        "開き直した先のブラウザが、言葉を保存する場所になります。"
+      );
+    } else {
+      setGuide(
+        "いつものブラウザで開き直してください",
+        "今は" + appName + "の中のブラウザで開いています。このままではホーム画面に追加できず、言葉も通常のブラウザとは別の場所に保存されます。",
+        [
+          appName + "の画面の右下（または右上）にあるメニューを開く",
+          "「Safariで開く」を選ぶ",
+          "Safariで開いたら、画面下の共有ボタンから「ホーム画面に追加」を選ぶ",
+        ],
+        "開き直した先のブラウザが、言葉を保存する場所になります。"
+      );
+    }
+  } else if (isStandalone()) {
+    setGuide(
+      "ホーム画面に追加済みです",
+      "いまは、ホーム画面から開ける状態で使っています。",
+      ["ホーム画面の双葉のアイコンから開くと、この場所に戻ってこられます"],
+      ""
+    );
+  } else if (isAndroid) {
+    setGuide(
+      "ホーム画面に追加する",
+      "Chromeで開いているときに、ホーム画面へ追加できます。追加すると、アプリのように開けて、保存も安定します。",
+      [
+        "Chromeの右上にあるメニュー（︙）を開く",
+        "「アプリをインストール」を選ぶ（表示されないときは「ホーム画面に追加」）",
+        "「インストール」を押すと、ホーム画面に双葉のアイコンが追加されます",
+      ],
+      "LINEなどのアプリの中のブラウザでは追加できません。その場合は、この案内の「開き直しかた」の手順でChromeで開いてください。"
+    );
+  } else if (isIOS) {
+    setGuide(
+      "ホーム画面に追加する",
+      "ホーム画面に追加すると、アプリのように開けて、保存も安定します。",
+      [
+        "画面の下にある共有ボタン（四角に上向きの矢印）を押す",
+        "「ホーム画面に追加」を選ぶ",
+        "右上の「追加」を押すと、ホーム画面に双葉のアイコンが追加されます",
+      ],
+      "LINEなどのアプリの中のブラウザでは追加できません。その場合は、いつものブラウザで開き直してください。"
+    );
+  } else {
+    setGuide(
+      "ホーム画面に追加する",
+      "パソコンでは、ブラウザのメニューやアドレスバーの右端にあるインストールの印から追加できます。スマートフォンで使うときは、その端末のブラウザでこのページを開いてください。",
+      [
+        "ブラウザのメニューから「インストール」または「ホーム画面に追加」を選ぶ",
+        "スマートフォンでは、Chrome（Android）やSafari（iPhone）で開くと追加できます",
+      ],
+      ""
+    );
+  }
+  openSheetEl(guideSheet);
+}
+document.querySelectorAll("[data-open-guide]").forEach((b) => {
+  b.addEventListener("click", openGuide);
+});
+document.getElementById("guide-close").addEventListener("click", closeSheet);
+
+// アプリ内ブラウザで開かれていたら、書く前に知らせる
+function initBrowserNotice() {
+  if (!isInAppBrowser || isStandalone()) return;
+  document.querySelectorAll(".browser-notice").forEach((n) => {
+    n.hidden = false;
+    const title = n.querySelector(".browser-notice-title");
+    if (title && isLineBrowser) {
+      title.textContent = "今はLINEの中のブラウザで開いています";
+    }
+  });
+  const hgText = document.getElementById("home-guide-text");
+  if (hgText) {
+    hgText.textContent =
+      "ホーム画面に追加すると、アプリのように開けて、保存も安定します。ただし、今開いているアプリの中のブラウザでは追加できません。いつものブラウザで開き直してください。";
+  }
+}
+
 backdrop.addEventListener("click", closeSheet);
 document.getElementById("sheet-close").addEventListener("click", closeSheet);
 document.getElementById("sheet-change").addEventListener("click", () => {
@@ -518,6 +662,8 @@ function markCarryover(value) {
 async function renderSettings() {
   const value = await getSetting("carryoverTendency", "off");
   markCarryover(value === "on" ? "on" : "off");
+  const motion = await getSetting("transitionSpeed", "slow");
+  markMotion(motion === "normal" ? "normal" : "slow");
 }
 carryoverRows.forEach((row) => {
   row.addEventListener("click", async () => {
@@ -525,44 +671,110 @@ carryoverRows.forEach((row) => {
     await setSetting("carryoverTendency", row.dataset.carryover);
   });
 });
-// ---------- 書き出し・読み込み（M5） ----------
-const exportSheet = document.getElementById("export-sheet");
-document.getElementById("btn-export").addEventListener("click", () => {
-  backdrop.classList.add("show");
-  exportSheet.classList.add("show");
+
+// ---------- 設定：画面の切り替わり（P2） ----------
+const motionRows = document.querySelectorAll("[data-motion]");
+function markMotion(value) {
+  state.transitionSpeed = value === "normal" ? "normal" : "slow";
+  document.documentElement.dataset.motion = state.transitionSpeed;
+  motionRows.forEach((r) =>
+    r.setAttribute("aria-checked", String(r.dataset.motion === state.transitionSpeed))
+  );
+}
+motionRows.forEach((row) => {
+  row.addEventListener("click", async () => {
+    markMotion(row.dataset.motion);
+    await setSetting("transitionSpeed", row.dataset.motion);
+  });
 });
-document.getElementById("export-cancel").addEventListener("click", closeSheet);
-document.getElementById("export-do").addEventListener("click", async () => {
-  closeSheet();
-  const entries = await getAllEntries();
-  const carryover = await getSetting("carryoverTendency", "off");
-  const data = buildBackup(entries, carryover, todayStr());
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+// ---------- 書き出し・読み込み（M5／P1で暗号化を追加） ----------
+const exportSheet = document.getElementById("export-sheet");
+const passwordSheet = document.getElementById("password-sheet");
+const unlockSheet = document.getElementById("unlock-sheet");
+const exportPass1 = document.getElementById("export-pass-1");
+const exportPass2 = document.getElementById("export-pass-2");
+const exportPassError = document.getElementById("export-pass-error");
+const importPass = document.getElementById("import-pass");
+const importPassError = document.getElementById("import-pass-error");
+
+function downloadTextFile(text, filename) {
+  const blob = new Blob([text], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "tokitane-backup-" + todayStr() + ".json";
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+async function buildBackupText() {
+  const entries = await getAllEntries();
+  const carryover = await getSetting("carryoverTendency", "off");
+  return JSON.stringify(buildBackup(entries, carryover, todayStr()), null, 2);
+}
+
+document.getElementById("btn-export").addEventListener("click", () => {
+  openSheetEl(exportSheet);
+});
+document.getElementById("export-cancel").addEventListener("click", closeSheet);
+document.getElementById("export-plain").addEventListener("click", async () => {
+  closeSheet();
+  downloadTextFile(await buildBackupText(), "tokitane-backup-" + todayStr() + ".json");
   showToast("書き出しました");
 });
+document.getElementById("export-encrypted").addEventListener("click", () => {
+  exportPass1.value = "";
+  exportPass2.value = "";
+  exportPassError.textContent = "";
+  openSheetEl(passwordSheet);
+  exportPass1.focus();
+});
+document.getElementById("export-encrypted-cancel").addEventListener("click", () => {
+  exportPass1.value = "";
+  exportPass2.value = "";
+  closeSheet();
+});
+const exportEncryptedDo = document.getElementById("export-encrypted-do");
+exportEncryptedDo.addEventListener("click", async () => {
+  const pass = exportPass1.value;
+  if (pass.length < 8) {
+    exportPassError.textContent = "パスワードは8文字以上にしてください";
+    return;
+  }
+  if (pass !== exportPass2.value) {
+    exportPassError.textContent = "パスワードが一致しません";
+    return;
+  }
+  exportPassError.textContent = "";
+  exportEncryptedDo.disabled = true;
+  const originalLabel = exportEncryptedDo.textContent;
+  exportEncryptedDo.textContent = "暗号化しています…";
+  try {
+    const text = await encryptBackupText(await buildBackupText(), pass);
+    downloadTextFile(text, "tokitane-backup-encrypted-" + todayStr() + ".json");
+    exportPass1.value = "";
+    exportPass2.value = "";
+    closeSheet();
+    showToast("パスワード付きで書き出しました");
+  } catch (_) {
+    exportPassError.textContent = "このブラウザでは暗号化できませんでした";
+  } finally {
+    exportEncryptedDo.disabled = false;
+    exportEncryptedDo.textContent = originalLabel;
+  }
+});
 
-const importFile = document.getElementById("import-file");
-document.getElementById("btn-import").addEventListener("click", () => importFile.click());
-importFile.addEventListener("change", async () => {
-  const file = importFile.files && importFile.files[0];
-  importFile.value = "";
-  if (!file) return;
+// 検証済みの平文テキストを取り込む（検証で落ちたら端末のデータには一切触らない）
+async function importFromPlainText(text) {
   let result;
   try {
-    result = validateBackupText(await file.text());
+    result = validateBackupText(text);
   } catch (_) {
     result = { error: "read-failed" };
   }
   if (result.error) {
-    // 検証で落ちたら、端末のデータには一切触らない
     showToast("読み込めませんでした。ときたね の書き出しファイルか、確かめてください");
     return;
   }
@@ -577,6 +789,56 @@ importFile.addEventListener("change", async () => {
     showToast(fresh.length + "件の言葉を読み込みました");
   } else {
     showToast("新しい言葉はありませんでした");
+  }
+}
+
+const importFile = document.getElementById("import-file");
+document.getElementById("btn-import").addEventListener("click", () => importFile.click());
+importFile.addEventListener("change", async () => {
+  const file = importFile.files && importFile.files[0];
+  importFile.value = "";
+  if (!file) return;
+  let text;
+  try {
+    text = await file.text();
+  } catch (_) {
+    showToast("読み込めませんでした。ときたね の書き出しファイルか、確かめてください");
+    return;
+  }
+  if (isEncryptedBackupText(text)) {
+    // パスワード付きのファイルは、先にパスワードを聞いてから復号する
+    state.pendingImportText = text;
+    importPass.value = "";
+    importPassError.textContent = "";
+    openSheetEl(unlockSheet);
+    importPass.focus();
+    return;
+  }
+  importFromPlainText(text);
+});
+document.getElementById("import-unlock-cancel").addEventListener("click", () => {
+  state.pendingImportText = null;
+  importPass.value = "";
+  closeSheet();
+});
+const importUnlockDo = document.getElementById("import-unlock-do");
+importUnlockDo.addEventListener("click", async () => {
+  const text = state.pendingImportText;
+  if (!text) {
+    closeSheet();
+    return;
+  }
+  importUnlockDo.disabled = true;
+  try {
+    const plain = await decryptBackupText(text, importPass.value);
+    state.pendingImportText = null;
+    importPass.value = "";
+    closeSheet();
+    importFromPlainText(plain);
+  } catch (_) {
+    importPassError.textContent = "パスワードが違うか、ファイルが壊れています";
+  } finally {
+    importUnlockDo.disabled = false;
   }
 });
 
@@ -632,9 +894,13 @@ document.getElementById("btn-start").addEventListener("click", async () => {
     const last = await getSetting("lastTendency", null);
     initial = initialTendency(carryover, last);
     welcomed = await getSetting("welcomed", false);
+    // 設定「画面の切り替わり」を最初の表示から反映する
+    const motion = await getSetting("transitionSpeed", "slow");
+    markMotion(motion === "normal" ? "normal" : "slow");
   } catch (_) {
     /* 保存が使えない環境では通常の入口・通常の傾向で続行する */
   }
+  initBrowserNotice();
   selectTendency(initial, { record: false });
   drawQuestion();
   if (!welcomed) show("view-welcome");
