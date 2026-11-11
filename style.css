@@ -252,6 +252,13 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
 }
 .reunion-body { font-size: 20px; line-height: 1.9; }
 .after-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+.reply-card {
+  background: var(--surface); border: 1px solid var(--card-line);
+  border-radius: 24px; padding: 18px 24px; margin-top: 16px; box-shadow: var(--shadow-card);
+}
+.reply-label { font-family: var(--font-maru); font-weight: 700; font-size: 13px; color: var(--rose); }
+.reply-body { font-size: 16.5px; line-height: 1.85; margin-top: 6px; }
+.reply-date { font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
 
 /* ---------- 預かり中 ---------- */
 .holding-note { font-size: 14px; color: var(--ink-soft); text-align: center; margin-bottom: 22px; }
@@ -281,7 +288,10 @@ button:focus-visible, [tabindex]:focus-visible, textarea:focus-visible {
 }
 .reunited-item .idate { font-size: 12.5px; color: var(--ink-soft); }
 .reunited-item .iq { font-family: var(--font-maru); font-weight: 700; font-size: 14px; color: var(--ink-soft); margin-top: 2px; }
-.reunited-item .ibody { font-size: 15.5px; line-height: 1.7; margin-top: 6px; }
+.reunited-item .ibody {
+  font-size: 15.5px; line-height: 1.7; margin-top: 6px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 .empty-note { text-align: center; font-size: 14.5px; color: var(--ink-soft); margin-top: 40px; }
 
 /* ---------- 設定 ---------- */
