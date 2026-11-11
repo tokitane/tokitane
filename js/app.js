@@ -1,6 +1,6 @@
-// ときたね アプリ本体（M4：設定の保存）
-// M4の範囲：設定「開いたときの傾向」の保存と、起動時の初期傾向への反映。
-// 預ける・保存は M2、再会は M3、書き出し・全削除は M5、PWA仕上げは M6。
+// ときたね アプリ本体（M5：バックアップ・削除）
+// M5の範囲：書き出し・読み込み（平文JSON）と、すべての言葉を消す（2段階＋長押し）。
+// 預ける・保存は M2、再会は M3、設定の保存は M4、PWA仕上げは M6。
 import { poolForTendency, initialTendency } from "./questions.js";
 import {
   addEntry,
@@ -10,11 +10,14 @@ import {
   getHoldingMeta,
   getDueEntries,
   getReunitedEntries,
+  getAllEntries,
+  clearAllData,
   countEntries,
   getSetting,
   setSetting,
   requestPersist,
 } from "./store.js";
+import { buildBackup, validateBackupText, pickNewEntries } from "./backup.js";
 import { todayStr, addDays, dueDateFor, formatJP } from "./dates.js";
 
 const TENDENCY_NAMES = {
@@ -445,6 +448,7 @@ function openSheet(meta) {
 function closeSheet() {
   backdrop.classList.remove("show");
   sheet.classList.remove("show");
+  exportSheet.classList.remove("show");
   state.sheetEntryId = null;
 }
 backdrop.addEventListener("click", closeSheet);
@@ -494,11 +498,62 @@ carryoverRows.forEach((row) => {
     await setSetting("carryoverTendency", row.dataset.carryover);
   });
 });
-document.querySelectorAll("[data-m1-note]").forEach((b) => {
-  b.addEventListener("click", () => showToast("書き出し・読み込みは M5 で使えるようになります"));
+// ---------- 書き出し・読み込み（M5） ----------
+const exportSheet = document.getElementById("export-sheet");
+document.getElementById("btn-export").addEventListener("click", () => {
+  backdrop.classList.add("show");
+  exportSheet.classList.add("show");
+});
+document.getElementById("export-cancel").addEventListener("click", closeSheet);
+document.getElementById("export-do").addEventListener("click", async () => {
+  closeSheet();
+  const entries = await getAllEntries();
+  const carryover = await getSetting("carryoverTendency", "off");
+  const data = buildBackup(entries, carryover, todayStr());
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "tokitane-backup-" + todayStr() + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  showToast("書き出しました");
 });
 
-// ---------- 全削除の長押し（実装は M5。ここは骨格確認用） ----------
+const importFile = document.getElementById("import-file");
+document.getElementById("btn-import").addEventListener("click", () => importFile.click());
+importFile.addEventListener("change", async () => {
+  const file = importFile.files && importFile.files[0];
+  importFile.value = "";
+  if (!file) return;
+  let result;
+  try {
+    result = validateBackupText(await file.text());
+  } catch (_) {
+    result = { error: "read-failed" };
+  }
+  if (result.error) {
+    // 検証で落ちたら、端末のデータには一切触らない
+    showToast("読み込めませんでした。ときたね の書き出しファイルか、確かめてください");
+    return;
+  }
+  const existing = new Set((await getAllEntries()).map((e) => e.id));
+  const fresh = pickNewEntries(result.entries, existing);
+  for (const e of fresh) {
+    await addEntry(e);
+  }
+  if (fresh.length > 0) {
+    await setSetting("started", true);
+    requestPersist();
+    showToast(fresh.length + "件の言葉を読み込みました");
+  } else {
+    showToast("新しい言葉はありませんでした");
+  }
+});
+
+// ---------- 全削除の長押し（M5で本実装） ----------
 const lpBtn = document.getElementById("btn-longpress");
 const lpFill = document.getElementById("longpress-fill");
 const lpNote = document.getElementById("longpress-note");
@@ -507,8 +562,13 @@ function lpStart(e) {
   e.preventDefault();
   lpFill.style.transition = "transform 1.2s linear";
   lpFill.style.transform = "scaleX(1)";
-  lpTimer = setTimeout(() => {
-    lpNote.textContent = "全削除は M5 で使えるようになります";
+  lpTimer = setTimeout(async () => {
+    await clearAllData();
+    lpCancel();
+    lpNote.textContent = "";
+    selectTendency("daily", { record: false });
+    showToast("すべての言葉を消しました");
+    goEntry();
   }, 1250);
 }
 function lpCancel() {
