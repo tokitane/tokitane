@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#FDF4F0">
 <meta name="description" content="過去の自分の言葉と、忘れた頃に再会する記録アプリ">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'self'; form-action 'none'">
 <title>ときたね</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-title" content="ときたね">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -221,6 +225,11 @@
     <h2 class="done-h">預けたよ</h2>
     <p class="done-sub">選んだ時期になったら、次にアプリを開いたときに現れます。</p>
   </div>
+  <div class="home-guide" id="home-guide" hidden>
+    <h3>ホーム画面から開けるようにしますか？</h3>
+    <p>ブラウザの共有やメニューから「ホーム画面に追加」を選ぶと、アプリのように開けて、保存も安定します。追加しなくても、このまま使えます。</p>
+    <button class="btn-text" id="home-guide-close">閉じる</button>
+  </div>
   <div class="float-bottom">
     <button class="btn-primary" data-go="view-entry">入口へ</button>
   </div>
@@ -291,6 +300,7 @@
       <p>アプリやブラウザのデータを削除すると、保存した言葉も失われます。残しておきたい言葉は、書き出して保管できます。ホーム画面に追加すると、保存が安定します。</p>
       <p>通知は届きません。預けた言葉は、時期が来たあと、次にアプリを開いたときに現れます。</p>
     </div>
+    <p class="settings-note"><a href="privacy.html" style="color:var(--rose)">プライバシーポリシー</a></p>
   </div>
 
   <div class="settings-group">
