@@ -99,6 +99,32 @@ export async function countEntries() {
   return all.length;
 }
 
+// 期日が来ている言葉（再会の対象）。古いものから順に返す。
+// 条件：預かり中／dueDate が今日以前／見送り中（deferUntil が未来）でない。
+export async function getDueEntries(today) {
+  const all = await getAll("entries");
+  return all
+    .filter(
+      (e) =>
+        e.status === "holding" &&
+        e.dueDate <= today &&
+        (!e.deferUntil || e.deferUntil <= today)
+    )
+    .sort((a, b) => {
+      if (a.dueDate !== b.dueDate) return a.dueDate < b.dueDate ? -1 : 1;
+      if (a.createdDate !== b.createdDate) return a.createdDate < b.createdDate ? -1 : 1;
+      return 0;
+    });
+}
+
+// 再会した言葉の一覧（読み返し用）。新しいものから順に返す。
+export async function getReunitedEntries() {
+  const all = await getAll("entries");
+  return all
+    .filter((e) => e.status === "reunited")
+    .sort((a, b) => (a.createdDate > b.createdDate ? -1 : 1));
+}
+
 // ---------- settings ----------
 export async function getSetting(key, fallback = null) {
   const row = await getOne("settings", key);
